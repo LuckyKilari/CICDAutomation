@@ -3,7 +3,10 @@ pipeline {
     environment { 	
 	IMAGE_NAME = 'luckykilari/sales-dashboard' 
 	IMAGE_TAG = 'latest'
-	}    
+	}
+    parameters {
+        string(name: 'REPO_NAME', defaultValue: 'luckykilari', description: 'repository name')        
+    }	
 
     stages {
         stage('Checkout') {
@@ -16,7 +19,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}")
+                    sh "docker build -t ${params.REPO_NAME} ."
                 }
             }
         }
