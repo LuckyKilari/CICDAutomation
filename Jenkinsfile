@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-	        git 'https://github.com/LuckyKilari/CICDAutomation.git'                    
+		git branch: 'Dev_Test', url: 'https://github.com/LuckyKilari/CICDAutomation.git'   
+	                          
             }
         }
 
