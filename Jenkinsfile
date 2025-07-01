@@ -4,9 +4,9 @@ pipeline {
 	IMAGE_NAME = 'luckykilari/sales-dashboard' 
 	IMAGE_TAG = 'latest'
 	}
-    parameters {
-        string(name: 'REPO_NAME', defaultValue: 'luckykilari', description: 'repository name')        
-    }	
+    // parameters {
+    //     string(name: 'REPO_NAME', defaultValue: 'luckykilari', description: 'repository name')        
+    // }	
 
     stages {
         stage('Checkout') {
@@ -15,25 +15,35 @@ pipeline {
 	                          
             }
         }
+	stage('Docker Login') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub', 
+                        usernameVariable: 'DOCKER_USERNAME', 
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    }
+                }
+            }
+        }    
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${params.REPO_NAME} ."
+                    dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
 
-        stage('Docker Login & Push') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                        sh "docker push ${IMAGE_NAME}"
-                    }
+                    dockerImage.push()
                 }
             }
         }
+        }
     }
-}
 
