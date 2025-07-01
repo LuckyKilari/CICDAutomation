@@ -1,16 +1,14 @@
 pipeline {
     agent any
-    environment { 
-	BRANCH_NAME = 'Dev_Test'
+    environment { 	
 	IMAGE_NAME = 'luckykilari/sales-dashboard' 
 	IMAGE_TAG = 'latest'
 	}    
 
     stages {
-        stage('Checkout Specific Branch') {
+        stage('Checkout') {
             steps {
-	        git branch: "${BRANCH_NAME}",
-                    url: 'https://github.com/LuckyKilari/CICDAutomation.git'
+	        git 'https://github.com/LuckyKilari/CICDAutomation.git'                    
             }
         }
 
