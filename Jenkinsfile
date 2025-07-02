@@ -1,49 +1,47 @@
 pipeline {
     agent any
-    environment { 	
-	IMAGE_NAME = 'luckykilari/sales-dashboard' 
-	IMAGE_TAG = 'latest'
-	}
-    // parameters {
-    //     string(name: 'REPO_NAME', defaultValue: 'luckykilari', description: 'repository name')        
-    // }	
+    environment { 
+		DOCKER_IMAGE = 'luckykilari/sales-dashboard' 
+		IMAGE_TAG = 'latest'
+		DOCKER_CREDENTIALS_ID = 'dockerhub' 
+
+		}     	
 
     stages {
         stage('Checkout') {
             steps {
-		git branch: 'Dev_Test', url: 'https://github.com/LuckyKilari/CICDAutomation.git'   
-	                          
+			    git branch: 'Dev_Test', url: 'https://github.com/LuckyKilari/CICDAutomation.git'                
             }
         }
-	stage('Docker Login') {
+		stage('Build/Compile') {
+            steps {
+                echo "Running Python Linting and Build checks"
+                sh 'pip install -r requirements.txt'
+                sh 'python -m py_compile $(find . -name "*.py")'  // Compiles Python files                
+            }
+        }
+		
+		stage('Docker Build') {
             steps {
                 script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub', 
-                        usernameVariable: 'DOCKER_USERNAME', 
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    sh "docker build -t $DOCKER_IMAGE:${env.BUILD_NUMBER} ."
+                }
+            }
+        }
+ 
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://hub.docker.com/repositories/luckykilari', DOCKER_CREDENTIALS_ID) {
+                        sh "docker tag $DOCKER_IMAGE:${env.BUILD_NUMBER} $DOCKER_IMAGE:latest"
+                        sh "docker push $DOCKER_IMAGE:${env.BUILD_NUMBER}"
+                        sh "docker push $DOCKER_IMAGE:latest"
                     }
                 }
             }
-        }    
+        }      
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    dockerImage = docker.build("${IMAGE_NAME}")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    dockerImage.push()
-                }
-            }
-        }
-        }
+        
     }
+}
 
