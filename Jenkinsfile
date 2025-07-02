@@ -1,8 +1,5 @@
 pipeline {
-    agent any
-    tools { 
-	    Python 'Python'
-    }
+    agent any    
     environment { 
 		DOCKER_IMAGE = 'luckykilari/sales-dashboard' 
 		IMAGE_TAG = 'latest'
